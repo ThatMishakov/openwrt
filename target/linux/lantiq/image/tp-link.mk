@@ -63,3 +63,15 @@ define Device/tplink_vr200v
   SUPPORTED_DEVICES += VR200v
 endef
 TARGET_DEVICES += tplink_vr200v
+
+define Device/tplink_archer-d2
+  $(Device/lantiqTpLink)
+  DEVICE_MODEL := Archer D2
+  DEVICE_VARIANT := v1
+  SOC := ar10
+  TPLINK_FLASHLAYOUT := 16Mltq
+  IMAGE_SIZE := 15808k
+  DEVICE_PACKAGES:= kmod-mt76x0e wpad-basic-wolfssl kmod-usb-dwc2 kmod-usb-ledtrig-usbport
+  SUPPORTED_DEVICES += Archer-D2
+endef
+TARGET_DEVICES += tplink_archer-d2

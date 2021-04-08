@@ -1,0 +1,252 @@
+// SPDX-License-Identifier: GPL-2.0-or-later OR MIT
+/dts-v1/;
+
+#include "ar10.dtsi"
+
+#include <dt-bindings/input/input.h>
+#include <dt-bindings/mips/lantiq_rcu_gphy.h>
+
+/ {
+ 	compatible = "tplink,archer-d2", "lantiq,xway", "lantiq,ar10";
+ 	model = "TP-Link Archer D2 v1";
+
+ 	memory@0 {
+ 		device_type = "memory";
+ 		reg = <0x0 0x4000000>;
+ 	};
+
+	aliases {
+                led-boot = &led_power;
+                led-failsafe = &led_power;
+                led-running = &led_power;
+                led-upgrade = &led_power;
+
+                led-dsl = &led_dsl;
+                led-internet = &led_internet;
+                led-wifi = &led_wlan;
+        };
+
+	keys: keys {
+                compatible = "gpio-keys-polled";
+                poll-interval = <100>;
+
+                reset {
+                        label = "reset";
+                        gpios = <&gpio 34 GPIO_ACTIVE_LOW>;
+                        linux,code = <KEY_RESTART>;
+                };
+
+                wifi {
+                        label = "wifi";
+                        gpios = <&gpio 9 GPIO_ACTIVE_HIGH>;
+                        linux,code = <KEY_RFKILL>;
+                        linux,input-type = <EV_SW>;
+                };
+
+                wps {
+                        label = "wps";
+                        gpios = <&gpio 0 GPIO_ACTIVE_LOW>;
+                        linux,code = <KEY_WPS_BUTTON>;
+                };
+        };
+
+        leds: leds {
+                compatible = "gpio-leds";
+
+                led_power: power {
+                        label = "power";
+                        gpios = <&gpio 6 GPIO_ACTIVE_LOW>;
+                        default-state = "keep";
+                };
+
+                led_dsl: dsl {
+                        label = "dsl";
+                        gpios = <&gpio 4 GPIO_ACTIVE_LOW>;
+                };
+
+                led_internet: internet {
+                        label = "internet";
+                        gpios = <&gpio 5 GPIO_ACTIVE_LOW>;
+                };
+
+                usb {   
+                        label = "usb";
+                        gpios = <&gpio 26 GPIO_ACTIVE_LOW>;
+                        trigger-sources = <&ehci_port1>;
+                        linux,default-trigger = "usbport";
+                };
+
+                lan {   
+                        label = "lan";
+                        gpios = <&gpio 8 GPIO_ACTIVE_LOW>;
+                };
+
+                led_wlan: wlan {
+                        label = "wlan";
+                        gpios = <&gpio 13 GPIO_ACTIVE_LOW>;
+                };
+
+                wps {
+                        label = "wps";
+                        gpios = <&gpio 27 GPIO_ACTIVE_LOW>;
+                };
+        };
+
+        usb_vbus: regulator-usb-vbus {
+		compatible = "regulator-fixed";
+
+		regulator-name = "USB_VBUS";
+
+		regulator-min-microvolt = <5000000>;
+		regulator-max-microvolt = <5000000>;
+
+		gpio = <&gpio 25 GPIO_ACTIVE_HIGH>;
+		enable-active-high;
+	};
+};
+
+&spi {
+        status = "okay";
+
+        flash@0 {
+                compatible = "jedec,spi-nor";
+                reg = <1>;
+                spi-max-frequency = <25000000>;
+                m25p,fast-read;
+
+                partitions {
+                        compatible = "fixed-partitions";
+                        #address-cells = <1>;
+                        #size-cells = <1>;
+
+                        partition@0 {
+                                reg = <0x0 0x20000>;
+                                label = "u-boot";
+                                read-only;
+                        };
+
+                        partition@20000 {
+                                reg = <0x20000 0xf90000>;
+                                label = "firmware";
+                        };
+
+                        partition@fb0000 {
+                                reg = <0xfb0000 0x10000>;
+                                label = "radioDECT";
+                                read-only;
+                        };
+
+                        partition@fc0000 {
+                                reg = <0xfc0000 0x10000>;
+                                label = "config";
+                                read-only;
+                        };
+
+                        romfile: partition@fd0000 {
+                                reg = <0xfd0000 0x10000>;
+                                label = "romfile";
+                                read-only;
+                        };
+
+                        partition@fe0000 {
+                                reg = <0xfe0000 0x10000>;
+                                label = "rom";
+                                read-only;
+                        };
+
+                        radio: partition@ff0000 {
+                                reg = <0xff0000 0x10000>;
+                                label = "radio";
+                                read-only;
+                        };
+                };
+        };
+};
+
+&eth0 {
+        pinctrl-names = "default";
+
+	interface@0 {
+		compatible = "lantiq,xrx200-pdi";
+		#address-cells = <1>;
+		#size-cells = <0>;
+		reg = <0>;
+		mtd-mac-address = <&romfile 0xf100>;
+		lantiq,switch;
+
+		ethernet@4 {
+			compatible = "lantiq,xrx200-pdi-port";
+			reg = <4>;
+			phy-mode = "rgmii";
+			phy-handle = <&phy4>;
+		};
+		ethernet@1 {
+			compatible = "lantiq,xrx200-pdi-port";
+			reg = <1>;
+			phy-mode = "rgmii";
+			phy-handle = <&phy1>;
+		};
+		ethernet@2 {
+			compatible = "lantiq,xrx200-pdi-port";
+			reg = <2>;
+			phy-mode = "gmii";
+			phy-handle = <&phy2>;
+		};
+		ethernet@5 {
+			compatible = "lantiq,xrx200-pdi-port";
+			reg = <5>;
+			phy-mode = "rgmii";
+			phy-handle = <&phy5>;
+		};
+	};
+
+		mdio@0 {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			compatible = "lantiq,xrx200-mdio";
+			phy4: ethernet-phy@4 {
+				reg = <0x4>;
+				compatible = "lantiq,phy11g", "ethernet-phy-ieee802.3-c22";
+			};
+			phy1: ethernet-phy@1 {
+				reg = <0x1>;
+				compatible = "lantiq,phy11g", "ethernet-phy-ieee802.3-c22";
+			};
+			phy2: ethernet-phy@2 {
+				reg = <0x2>;
+				compatible = "lantiq,phy11g", "ethernet-phy-ieee802.3-c22";
+			};
+			phy5: ethernet-phy@5 {
+				reg = <0x5>;
+				compatible = "lantiq,phy11g", "ethernet-phy-ieee802.3-c22";
+			};
+                };
+};
+
+&usb0 {
+        status = "okay";
+        vbus-supply = <&usb_vbus>;
+};
+
+&usb_phy0 {
+        status = "okay";
+};
+
+&pcie0 {
+	pcie@0 {
+		reg = <0 0 0 0 0>;
+		#interrupt-cells = <1>;
+		#size-cells = <2>;
+		#address-cells = <3>;
+		device_type = "pci";
+
+		wifi@0,0 {
+			reg = <0 0 0 0 0>;
+			mediatek,mtd-eeprom = <&radio 0x0000>;
+			big-endian;
+			ieee80211-freq-limit = <5000000 6000000>;
+			mtd-mac-address = <&romfile 0xf100>;
+			mtd-mac-address-increment = <2>;
+		};
+	};
+};

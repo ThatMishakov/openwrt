@@ -66,6 +66,10 @@ lantiq_setup_interfaces()
 		ucidef_add_switch "switch0" \
 			"0:lan" "2:lan" "4:lan" "5:lan" "6t@eth0"
 		;;
+	tplink,archer-d2))
+                ucidef_add_switch "switch0" \
+                        "1:lan:1" "2:lan:3" "4:lan:2" "5:lan:4" "6t@eth0"
+		;;
 	zyxel,p-2812hnu-f1|\
 	zyxel,p-2812hnu-f3)
 		ucidef_add_switch "switch0" \
@@ -165,7 +169,8 @@ lantiq_setup_macs()
 		wan_mac=$(macaddr_add "$(mtd_get_mac_binary boardconfig 0xf100)" 1)
 		;;
 	tplink,vr200|\
-	tplink,vr200v)
+	tplink,vr200v|\
+	tplink,archer-d2)
 		wan_mac=$(macaddr_add "$(mtd_get_mac_binary romfile 0xf100)" 1)
 		;;
 	esac
